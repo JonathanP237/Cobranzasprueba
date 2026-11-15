@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#12251f">
+  <title>Cartera | Cobranzas</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+
+  <!-- MODAL DE INICIO DE SESIÓN PARA COBRADOR -->
+  <dialog id="login-dialog" class="dialog" style="max-width: 420px;">
+    <form id="login-form" class="dialog-form">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">AUTENTICACIÓN REQUERIDA</p>
+          <h2>Ingreso de Cobrador</h2>
+        </div>
+      </div>
+      <p class="form-hint" style="margin-bottom: 12px;">Ingresa tus credenciales para acceder exclusivamente a tu cartera asignada.</p>
+      
+      <label>Usuario
+        <input name="username" id="login-username" required autocomplete="username" placeholder="Ej. mauricio3 o fernando1">
+      </label>
+      <label>Contraseña
+        <input name="password" id="login-password" type="password" required autocomplete="current-password" placeholder="Contraseña">
+      </label>
+
+      <div class="preview-box" style="margin: 12px 0; font-size: 0.85rem;">
+        <strong>Cobradores de prueba:</strong><br>
+        • <code>fernando1</code> / <code>password123</code><br>
+        • <code>claudia2</code> / <code>password123</code><br>
+        • <code>mauricio3</code> / <code>password123</code>
+      </div>
+
+      <div class="dialog-actions" style="justify-content: flex-end;">
+        <button type="submit" class="button button-primary" style="width: 100%;">Iniciar Sesión</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" data-page="inicio"><span class="brand-mark">C</span><span>Cartera<small>GESTIÓN DE COBRANZAS</small></span></a>
+      <p class="nav-caption">MENÚ PRINCIPAL</p>
+      <nav class="navigation" aria-label="Navegación">
+        <button class="nav-link active" data-page="inicio"><span>◫</span> Resumen</button>
+        <button class="nav-link" data-page="creditos"><span>▤</span> Mis Créditos</button>
+        <button class="nav-link" data-page="clientes"><span>♙</span> Mis Clientes</button>
+      </nav>
+      <div class="sidebar-note">
+        <span class="status-dot"></span>
+        <span id="user-session-badge">Iniciando sesión...</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div><p class="eyebrow">SISTEMA DE CARTERA</p><h1 id="page-title">Resumen</h1></div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="text-align: right;">
+            <span class="eyebrow" style="display: block; margin: 0;">COBRADOR AUTENTICADO</span>
+            <strong id="auth-collector-name" style="color: #fff;">—</strong>
+          </div>
+          <button id="logout-button" class="button button-quiet" style="padding: 6px 12px; font-size: 0.85rem;">Cerrar sesión</button>
+        </div>
+      </header>
+
+      <div id="notice" class="notice" role="status" hidden></div>
+
+      <section id="page-inicio" class="page-section">
+        <div class="welcome-row">
+          <div><p class="eyebrow">PANEL DE CONTROL</p><h2>Tu cartera asignada.</h2><p class="muted">Gestión segura y exclusiva de tus créditos y cobranzas en campo.</p></div>
+          <button class="button button-primary" data-open="credit-dialog">＋ Nuevo crédito</button>
+        </div>
+        <div class="stat-grid">
+          <article class="stat-card"><span class="stat-icon green">▤</span><span class="stat-label">Créditos asignados</span><strong id="stat-credits">—</strong><small>En tu cartera</small></article>
+          <article class="stat-card"><span class="stat-icon blue">♙</span><span class="stat-label">Clientes a cargo</span><strong id="stat-clients">—</strong><small>Con créditos activos</small></article>
+          <article class="stat-card"><span class="stat-icon amber">◷</span><span class="stat-label">Cuotas pendientes</span><strong id="stat-pending">—</strong><small>Por recaudar</small></article>
+          <article class="stat-card"><span class="stat-icon violet">$</span><span class="stat-label">Saldo pendiente</span><strong id="stat-balance">—</strong><small>Capital e intereses por cobrar</small></article>
+        </div>
+        <article class="panel">
+          <div class="panel-heading"><div><p class="eyebrow">SEGUIMIENTO</p><h3>Créditos recientes asignados</h3></div><button class="text-button" data-page="creditos">Ver todos →</button></div>
+          <div id="recent-credits" class="table-wrap"></div>
+        </article>
+      </section>
+
+      <section id="page-creditos" class="page-section" hidden>
+        <div class="section-heading"><div><p class="eyebrow">CARTERA</p><h2>Mis Créditos</h2><p class="muted">Plazo, tasa de interés y cuotas calculadas para tus deudores asignados.</p></div><button class="button button-primary" data-open="credit-dialog">＋ Nuevo crédito</button></div>
+        <article class="panel"><div id="credit-list" class="table-wrap"></div></article>
+      </section>
+
+      <section id="page-clientes" class="page-section" hidden>
+        <div class="section-heading"><div><p class="eyebrow">DIRECTORIO</p><h2>Mis Clientes</h2><p class="muted">Clientes que tienen obligaciones vigentes contigo.</p></div><button class="button button-primary" data-open="client-dialog">＋ Nuevo cliente</button></div>
+        <article class="panel"><div id="client-list" class="table-wrap"></div></article>
+      </section>
+      <footer>Gestión de cobranzas <span>•</span> Asignación Exclusiva por Cobrador</footer>
+    </main>
+  </div>
+
+  <dialog id="client-dialog" class="dialog">
+    <form id="client-form" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">DIRECTORIO</p><h2>Registrar cliente</h2></div><button type="button" class="icon-button" data-close aria-label="Cerrar">×</button></div>
+      <label>Nombre completo<input name="nombreCliente" maxlength="150" required autocomplete="name" placeholder="Ej. María Gómez"></label>
+      <label>Teléfono <span class="optional">(opcional)</span><input name="telefonoCliente" maxlength="30" autocomplete="tel" placeholder="300 000 0000"></label>
+      <div class="dialog-actions"><button type="button" class="button button-quiet" data-close>Cancelar</button><button class="button button-primary">Guardar cliente</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="credit-dialog" class="dialog">
+    <form id="credit-form" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">NUEVA OPERACIÓN</p><h2>Crear crédito</h2></div><button type="button" class="icon-button" data-close aria-label="Cerrar">×</button></div>
+      <label>Cliente<select name="clienteId" id="credit-client" required></select></label>
+      <label>Capital prestado<input name="monto" type="number" min="0.01" step="0.01" required placeholder="500000"></label>
+      <div class="field-row"><label>Fecha de inicio<input name="fechaInicio" type="date" required></label><label>Fecha límite<input name="fechaLimite" type="date" required></label></div>
+      <label>Frecuencia de cuotas<select name="frecuenciaPago" required><option value="DIARIA">Diaria</option><option value="SEMANAL">Semanal</option><option value="QUINCENAL">Quincenal</option><option value="MENSUAL" selected>Mensual</option></select></label>
+      <div id="interest-preview" class="preview-box">Define las fechas para calcular tasa, interés y total.</div>
+      <p class="form-hint">Regla de negocio por duración del crédito: 7 días = 5%, 15 días = 10%, un mes o más = 20%. La tasa se calcula según el plazo entre fecha de inicio y fecha límite.</p>
+      <div class="dialog-actions"><button type="button" class="button button-quiet" data-close>Cancelar</button><button class="button button-primary">Crear crédito</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detail-dialog" class="dialog dialog-wide">
+    <div class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">DETALLE DE CARTERA</p><h2 id="detail-title">Crédito</h2></div><button type="button" class="icon-button" data-close aria-label="Cerrar">×</button></div>
+      <div id="detail-summary" class="detail-summary"></div>
+      <div class="panel-heading"><h3>Plan de cuotas</h3><div class="inline-actions"><button id="manage-action" class="button button-outline">＋ Gestión</button><button id="pay-action" class="button button-primary">Registrar pago</button></div></div>
+      <div id="detail-installments" class="table-wrap"></div>
+      <div class="panel-heading history-heading"><h3>Historial de gestiones</h3></div>
+      <div id="detail-history" class="history-list"></div>
+    </div>
+  </dialog>
+
+  <dialog id="management-dialog" class="dialog">
+    <form id="management-form" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">ACTIVIDAD DE COBRO</p><h2>Registrar gestión</h2></div><button type="button" class="icon-button" data-close aria-label="Cerrar">×</button></div>
+      <label>Cuota<select name="cuotaId" id="management-installment" required></select></label>
+      <label>Tipo de gestión<select name="tipoGestion" required><option value="LLAMADA">Llamada</option><option value="MENSAJE">Mensaje</option><option value="VISITA">Visita</option></select></label>
+      <label>Resultado<select name="resultado" required><option value="CONTACTO_EXITOSO">Contacto exitoso</option><option value="SIN_RESPUESTA">Sin respuesta</option><option value="PROMESA_PAGO">Promesa de pago</option><option value="ACUERDO_PAGO">Acuerdo de pago</option><option value="RECORDATORIO">Recordatorio</option><option value="REFINANCIACION">Refinanciación</option><option value="PAGO_CONFIRMADO">Pago confirmado</option></select></label>
+      <label>Observaciones<textarea name="observaciones" rows="3" maxlength="4000" placeholder="Detalle de la conversación o visita"></textarea></label>
+      <div class="dialog-actions"><button type="button" class="button button-quiet" data-close>Cancelar</button><button class="button button-primary">Guardar gestión</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="payment-dialog" class="dialog">
+    <form id="payment-form" class="dialog-form">
+      <div class="dialog-heading"><div><p class="eyebrow">REGISTRO DE RECAUDO</p><h2>Registrar pago</h2></div><button type="button" class="icon-button" data-close aria-label="Cerrar">×</button></div>
+      <label>Cuota pendiente<select name="cuotaId" id="payment-installment" required></select></label>
+      <label>Monto recibido<input name="monto" type="number" min="0.01" step="0.01" required placeholder="0.00"></label>
+      <p class="form-hint">Se registra el pago y la gestión en campo asociada a tu cobro.</p>
+      <div class="dialog-actions"><button type="button" class="button button-quiet" data-close>Cancelar</button><button class="button button-primary">Guardar pago</button></div>
+    </form>
+  </dialog>
+
+  <template id="empty-template"><div class="empty-state"><span>▤</span><strong>Sin registros todavía</strong><p>Cuando agregues información, aparecerá aquí.</p></div></template>
+</body>
+</html>
