@@ -130,14 +130,12 @@ async function refresh() {
     state.credits = credits;
     
     // Filtrar clientes para mostrar únicamente los que tienen créditos con este cobrador
-    const clientIdsOfCollector = new Set(credits.map(c => c.clienteId));
-    state.clients = clients.filter(c => clientIdsOfCollector.has(c.id));
-    
-    // Todos los clientes para poder crearle nuevo crédito
+    state.clients = clients;
     state.allClients = clients;
 
-    $("#credit-client").innerHTML = clients.map(client => `<option value="${client.id}">${escapeHtml(client.nombre)}</option>`).join("");
+    fillClientOptions();
 
+    $("#credit-client").disabled = clients.length === 0;
     renderClients();
     renderCredits();
     await renderOverview();
@@ -371,7 +369,6 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         body: JSON.stringify({
           clienteId: Number(formData.get("clienteId")),
-          cobradorId: state.authCobrador.cobradorId, // Asignado exclusivamente al cobrador autenticado
           monto: Number(formData.get("monto")),
           fechaInicio: formData.get("fechaInicio"),
           fechaLimite: formData.get("fechaLimite"),
