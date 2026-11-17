@@ -7,8 +7,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ud.cobranzas.model.dto.CreditoRequestDto;
 import com.ud.cobranzas.model.entity.CreditoEntity;
@@ -29,17 +31,27 @@ public class CreditoService {
     private final CuotaRepository cuotaRepository;
 
     @Transactional
-    public CreditoEntity crear(CreditoRequestDto request) {
+    public CreditoEntity crear(
+            CreditoRequestDto request,
+            Integer cobradorAuthId) {
         if (!request.fechaLimite().isAfter(request.fechaInicio())) {
             throw new IllegalArgumentException("La fecha límite debe ser posterior al inicio.");
         }
 
         calcularTasa(request.fechaInicio(), request.fechaLimite());
-        var cliente = clienteRepository.findById(request.clienteId())
-                .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado."));
-        var cobrador = cobradorRepository.findById(request.cobradorId())
+        var cobrador = cobradorRepository.findById(cobradorAuthId)
                 .filter(c -> Boolean.TRUE.equals(c.getActivo()))
-                .orElseThrow(() -> new IllegalArgumentException("Cobrador no encontrado o inactivo."));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Cobrador no autorizado."));
+
+        var cliente = clienteRepository
+                .findByIdAndCobrador_Id(
+                        request.clienteId(),
+                        cobradorAuthId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Cliente no encontrado entre tus clientes asignados."));
 
         CreditoEntity credito = creditoRepository.saveAndFlush(CreditoEntity.builder()
                 .cliente(cliente)
@@ -91,7 +103,8 @@ public class CreditoService {
         if (dias >= 28) {
             return BigDecimal.valueOf(20);
         }
-        throw new IllegalArgumentException("El plazo debe ser de exactamente 7 días (5%), 15 días (10%) o de un mes o más (20%).");
+        throw new IllegalArgumentException(
+                "El plazo debe ser de exactamente 7 días (5%), 15 días (10%) o de un mes o más (20%).");
     }
 
     private List<LocalDate> generarFechas(LocalDate inicio, LocalDate limite, String frecuencia) {
@@ -106,7 +119,8 @@ public class CreditoService {
         int numero = 1;
         LocalDate vencimiento;
         do {
-            LocalDate programada = periodoDias == 0 ? inicio.plusMonths(numero) : inicio.plusDays((long) periodoDias * numero);
+            LocalDate programada = periodoDias == 0 ? inicio.plusMonths(numero)
+                    : inicio.plusDays((long) periodoDias * numero);
             vencimiento = programada.isAfter(limite) ? limite : programada;
             fechas.add(vencimiento);
             numero++;
