@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
-    @ExceptionHandler({IllegalArgumentException.class, MethodArgumentNotValidException.class})
+    @ExceptionHandler({ IllegalArgumentException.class, MethodArgumentNotValidException.class })
     public ResponseEntity<Map<String, String>> badRequest(Exception exception) {
         String message = exception instanceof MethodArgumentNotValidException validation
                 ? validation.getBindingResult().getFieldErrors().stream()
@@ -23,5 +23,14 @@ public class ApiExceptionHandler {
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Map<String, String>> forbidden(SecurityException exception) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", exception.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> conflict(
+            IllegalStateException exception) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of("error", exception.getMessage()));
     }
 }

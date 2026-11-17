@@ -31,10 +31,18 @@ async function api(url, options = {}) {
   }
   const response = await fetch(url, { ...options, headers });
   
-  if (response.status === 401 || response.status === 403) {
-    logout();
-    throw new Error("Sesión expirada o no autorizada. Por favor inicia sesión.");
-  }
+  if (response.status === 401) {
+  logout();
+  throw new Error(
+    "Tu sesión no es válida o ha expirado. Inicia sesión nuevamente."
+  );
+}
+
+if (response.status === 403) {
+  throw new Error(
+    "No tienes permisos para realizar esta operación."
+  );
+}
   
   const data = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.error || data?.message || `Error ${response.status}`);
