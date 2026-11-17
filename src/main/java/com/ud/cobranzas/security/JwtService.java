@@ -1,25 +1,27 @@
 package com.ud.cobranzas.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+
 @Component
 public class JwtService {
 
-    @Value("${jwt.secret:12345678901234567890123456789012}")
-    private String secretKey;
+    @Value("${jwt.secret}")
+private String secretKey;
 
-    @Value("${jwt.expiration:86400000}")
-    private long jwtExpiration;
+@Value("${jwt.expiration}")
+private long jwtExpiration;
 
     private SecretKey getSignInKey() {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);

@@ -1,12 +1,17 @@
 package com.ud.cobranzas.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.ud.cobranzas.model.dto.AuthResponseDto;
 import com.ud.cobranzas.model.dto.LoginRequestDto;
 import com.ud.cobranzas.model.entity.CobradorEntity;
 import com.ud.cobranzas.repository.CobradorRepository;
 import com.ud.cobranzas.security.JwtService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +19,7 @@ public class AuthService {
 
     private final CobradorRepository cobradorRepository;
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthResponseDto login(LoginRequestDto request) {
         if (request.getUsername() == null || request.getPassword() == null) {
@@ -27,8 +33,13 @@ public class AuthService {
             throw new SecurityException("Acceso denegado: Cobrador inactivo.");
         }
 
-        if (!request.getPassword().equals(cobrador.getPassword())) {
-            throw new SecurityException("Credenciales inválidas: Contraseña incorrecta.");
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                cobrador.getPassword())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Credenciales inválidas.");
         }
 
         String token = jwtService.generateToken(cobrador.getId(), cobrador.getUsername(), cobrador.getNombreCobrador());

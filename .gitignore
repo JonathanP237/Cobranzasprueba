@@ -1,4 +1,12 @@
+.env
+.env.*
+!.env.example
+application-local.properties
+application-prod-local.properties
+*.pem
+*.key
 HELP.md
+entendimiento-proyecto.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
