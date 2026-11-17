@@ -42,6 +42,10 @@
         <button class="nav-link active" data-page="inicio"><span>◫</span> Resumen</button>
         <button class="nav-link" data-page="creditos"><span>▤</span> Mis Créditos</button>
         <button class="nav-link" data-page="clientes"><span>♙</span> Mis Clientes</button>
+        <button class="nav-link" data-page="recaudos"><span>▣</span> Historial de recaudos
+        <button class="nav-link" data-page="cartera"><span>◫</span> Resumen de cartera
+</button>
+</button>
       </nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -89,6 +93,50 @@
         <div class="section-heading"><div><p class="eyebrow">DIRECTORIO</p><h2>Mis Clientes</h2><p class="muted">Clientes que tienen obligaciones vigentes contigo.</p></div><button class="button button-primary" data-open="client-dialog">＋ Nuevo cliente</button></div>
         <article class="panel"><div id="client-list" class="table-wrap"></div></article>
       </section>
+
+      <section id="page-recaudos" class="page-section" hidden>
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">REPORTE DE BASES DE DATOS</p>
+      <h2>Historial de recaudos</h2>
+      <p class="muted">
+        Pagos registrados en los créditos de tu cartera.
+      </p>
+    </div>
+  </div>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">TOTAL RECAUDADO</p>
+        <h3 id="recaudos-total">$0</h3>
+      </div>
+    </div>
+
+    <div id="recaudos-list" class="table-wrap"></div>
+  </article>
+
+  <section id="page-cartera" class="page-section" hidden>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">REPORTE DE BASES DE DATOS</p>
+      <h2>Resumen de cartera</h2>
+      <p class="muted">
+        Información consolidada mediante LEFT JOIN.
+      </p>
+    </div>
+  </div>
+
+  <article class="panel">
+    <div class="panel-heading">
+      <h3>Consolidado del cobrador</h3>
+    </div>
+    <div id="cartera-resumen" class="table-wrap"></div>
+  </article>
+</section>
+
+</section>
       <footer>Gestión de cobranzas <span>•</span> Asignación Exclusiva por Cobrador</footer>
     </main>
   </div>

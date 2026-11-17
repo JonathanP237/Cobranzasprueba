@@ -12,6 +12,12 @@ const money = new Intl.NumberFormat("es-CO", {
   currency: "COP",
   maximumFractionDigits: 0
 });
+const money2 = new Intl.NumberFormat("es-CO", {
+  style: "currency",
+  currency: "COP",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
 const dateFormat = new Intl.DateTimeFormat("es-CO", { dateStyle: "medium" });
 const labels = {
   AL_DIA: "Al día", PAGADO: "Pagado", REFINANCIADO: "Refinanciado",
@@ -182,10 +188,54 @@ async function renderOverview() {
     recent.map(credit => creditRow(credit)), "No hay créditos para mostrar");
 }
 
+async function renderRecaudos() {
+
+  const recaudos = await api("/api/reportes/recaudos");
+
+  const total = recaudos.reduce(
+    (suma, recaudo) => suma + Number(recaudo.montoAbono),
+    0
+  );
+
+  $("#recaudos-total").textContent = money2.format(total);
+
+  renderTable(
+    $("#recaudos-list"),
+    [
+      "PAGO",
+      "CRÉDITO",
+      "CLIENTE",
+      "COBRADOR",
+      "CUOTA",
+      "ABONO",
+      "FECHA"
+    ],
+    recaudos.map(r => {
+
+      const fecha = r.fechaPago
+        ? r.fechaPago.replace("T", " ").slice(0, 16)
+        : "—";
+
+      return `
+        <tr>
+          <td>#${r.pagoId}</td>
+          <td>#${r.creditoId}</td>
+          <td>${escapeHtml(r.nombreCliente)}</td>
+          <td>${escapeHtml(r.nombreCobrador)}</td>
+          <td>#${r.cuotaNumero}</td>
+          <td><strong>${money2.format(Number(r.montoAbono))}</strong></td>
+          <td>${escapeHtml(fecha)}</td>
+        </tr>
+      `;
+    }),
+    "No hay pagos registrados"
+  );
+}
+
 function showPage(name) {
   $$(".page-section").forEach(section => { section.hidden = section.id !== `page-${name}`; });
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === name));
-  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes" }[name] || "Resumen";
+  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes", recaudos: "Historial de recaudos", cartera: "Resumen de cartera" }[name] || "Resumen";
 }
 
 function getRate(startValue, endValue) {
@@ -282,6 +332,32 @@ function openPayment() {
     }).catch(error => notify(error.message, "error"));
 }
 
+async function renderResumenCartera() {
+  const cartera = await api("/api/reportes/cartera");
+
+  renderTable(
+    $("#cartera-resumen"),
+    [
+      "COBRADOR",
+      "CRÉDITOS",
+      "CAPITAL",
+      "INTERÉS",
+      "CARTERA BRUTA"
+    ],
+    [
+      `<tr>
+        <td>${escapeHtml(cartera.nombreCobrador)}</td>
+        <td>${cartera.totalCreditos}</td>
+        <td>${money2.format(Number(cartera.totalCapital))}</td>
+        <td>${money2.format(Number(cartera.totalInteres))}</td>
+        <td><strong>${money2.format(Number(cartera.carteraBruta))}</strong></td>
+      </tr>`
+    ],
+    "No hay información de cartera"
+  );
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
   // Manejo de autenticación
   $("#login-form").addEventListener("submit", async event => {
@@ -312,11 +388,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.body.addEventListener("click", event => {
     const pageButton = event.target.closest("[data-page]");
-    if (pageButton) {
-      event.preventDefault();
-      showPage(pageButton.dataset.page);
-      return;
-    }
+
+if (pageButton) {
+  event.preventDefault();
+
+  showPage(pageButton.dataset.page);
+
+  if (pageButton.dataset.page === "recaudos") {
+    renderRecaudos().catch(error => {
+      notify(error.message, "error");
+    });
+  }
+
+  return;
+}
+
+if (pageButton.dataset.page === "cartera") {
+  renderResumenCartera().catch(error => {
+    notify(error.message, "error");
+  });
+}
     const openButton = event.target.closest("[data-open]");
     if (openButton) {
       $(`#${openButton.dataset.open}`).showModal();
