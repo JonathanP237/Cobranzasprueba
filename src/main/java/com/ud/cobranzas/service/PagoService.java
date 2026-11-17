@@ -1,14 +1,21 @@
 package com.ud.cobranzas.service;
 
-import com.ud.cobranzas.model.dto.PagoRequestDto;
-import com.ud.cobranzas.model.entity.*;
-import com.ud.cobranzas.repository.*;
-import lombok.RequiredArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.ud.cobranzas.model.dto.PagoRequestDto;
+import com.ud.cobranzas.model.entity.CreditoEntity;
+import com.ud.cobranzas.model.entity.CuotaEntity;
+import com.ud.cobranzas.model.entity.GestionCobroEntity;
+import com.ud.cobranzas.model.entity.PagoEntity;
+import com.ud.cobranzas.repository.CuotaRepository;
+import com.ud.cobranzas.repository.GestionCobroRepository;
+import com.ud.cobranzas.repository.PagoRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +37,21 @@ public class PagoService {
         CreditoEntity credito = cuota.getCredito();
 
         if (!credito.getCobrador().getId().equals(cobradorIdLogueado)) {
-            throw new SecurityException("Acceso denegado: Este crédito no está asignado a este cobrador.");
+            throw new SecurityException(
+                    "Acceso denegado: Este crédito no está asignado a este cobrador.");
         }
 
+        // Validar que el crédito permita recibir pagos.
+        if (!"AL_DIA".equals(credito.getEstado())) {
+            throw new IllegalStateException(
+                    "No se pueden registrar pagos sobre un crédito en estado "
+                            + credito.getEstado());
+        }
+
+        // Validar que la cuota aún tenga pagos pendientes.
         if ("PAGADA".equals(cuota.getEstado())) {
-            throw new IllegalStateException("La cuota ya está pagada.");
+            throw new IllegalStateException(
+                    "La cuota ya está pagada.");
         }
 
         BigDecimal totalPagado = pagoRepository.calcularTotalPagadoPorCuota(cuota.getId());
@@ -49,7 +66,8 @@ public class PagoService {
                 .fechaGestion(LocalDateTime.now())
                 .tipoGestion(request.getTipoGestion() != null ? request.getTipoGestion() : "VISITA")
                 .resultado("PAGO_CONFIRMADO")
-                .observaciones(request.getObservaciones() != null ? request.getObservaciones() : "Pago registrado por el cobrador asignado en la app.")
+                .observaciones(request.getObservaciones() != null ? request.getObservaciones()
+                        : "Pago registrado por el cobrador asignado en la app.")
                 .build();
 
         gestionCobroRepository.save(gestion);

@@ -80,16 +80,27 @@ public class MainController {
         }
 
         @GetMapping("/cobradores")
-        public ResponseEntity<List<ApiResponseDtos.Cobrador>> listarCobradoresActivos() {
-                return ResponseEntity.ok(cobradorRepository.findByActivoTrueOrderByNombreCobradorAsc().stream()
-                                .map(c -> new ApiResponseDtos.Cobrador(c.getId(), c.getNombreCobrador(),
-                                                Boolean.TRUE.equals(c.getActivo())))
-                                .toList());
+        public ResponseEntity<List<ApiResponseDtos.Cobrador>> listarCobradoresActivos(
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                return ResponseEntity.ok(
+                                List.of(
+                                                new ApiResponseDtos.Cobrador(
+                                                                cobradorAuth.getId(),
+                                                                cobradorAuth.getNombreCobrador(),
+                                                                Boolean.TRUE.equals(cobradorAuth.getActivo()))));
         }
 
         @GetMapping("/creditos")
-        public ResponseEntity<List<ApiResponseDtos.Credito>> listarCreditos() {
-                return ResponseEntity.ok(creditoRepository.findAll().stream().map(this::aDto).toList());
+        public ResponseEntity<List<ApiResponseDtos.Credito>> listarCreditos(
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                return ResponseEntity.ok(
+                                creditoRepository
+                                                .findByCobradorId(cobradorAuth.getId())
+                                                .stream()
+                                                .map(this::aDto)
+                                                .toList());
         }
 
         @PostMapping("/creditos")
@@ -106,23 +117,45 @@ public class MainController {
         }
 
         @GetMapping("/cuotas/credito/{creditoId}")
-        public ResponseEntity<List<ApiResponseDtos.Cuota>> listarCuotasPorCredito(@PathVariable Integer creditoId) {
-                return ResponseEntity.ok(cuotaRepository.findCuotasConPagos(creditoId, null).stream()
-                                .map(c -> new ApiResponseDtos.Cuota(
-                                                c.getId(), c.getCreditoId(), c.getNumeroCuota(),
-                                                c.getMontoCuota(), c.getMontoPagado(), c.getFechaVencimiento(),
-                                                c.getEstado()))
-                                .toList());
+        public ResponseEntity<List<ApiResponseDtos.Cuota>> listarCuotasPorCredito(
+                        @PathVariable Integer creditoId,
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                validarCreditoPropio(creditoId, cobradorAuth);
+
+                return ResponseEntity.ok(
+                                cuotaRepository.findCuotasConPagos(creditoId, null)
+                                                .stream()
+                                                .map(c -> new ApiResponseDtos.Cuota(
+                                                                c.getId(),
+                                                                c.getCreditoId(),
+                                                                c.getNumeroCuota(),
+                                                                c.getMontoCuota(),
+                                                                c.getMontoPagado(),
+                                                                c.getFechaVencimiento(),
+                                                                c.getEstado()))
+                                                .toList());
         }
 
         @GetMapping("/creditos/{creditoId}/gestiones")
-        public ResponseEntity<List<ApiResponseDtos.Gestion>> listarGestiones(@PathVariable Integer creditoId) {
-                return ResponseEntity
-                                .ok(gestionCobroRepository.findByCreditoIdOrderByFechaGestionDesc(creditoId).stream()
+        public ResponseEntity<List<ApiResponseDtos.Gestion>> listarGestiones(
+                        @PathVariable Integer creditoId,
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                validarCreditoPropio(creditoId, cobradorAuth);
+
+                return ResponseEntity.ok(
+                                gestionCobroRepository
+                                                .findByCreditoIdOrderByFechaGestionDesc(creditoId)
+                                                .stream()
                                                 .map(g -> new ApiResponseDtos.Gestion(
-                                                                g.getId(), g.getCredito().getId(), g.getCuota().getId(),
-                                                                g.getFechaGestion(), g.getTipoGestion(),
-                                                                g.getResultado(), g.getObservaciones()))
+                                                                g.getId(),
+                                                                g.getCredito().getId(),
+                                                                g.getCuota().getId(),
+                                                                g.getFechaGestion(),
+                                                                g.getTipoGestion(),
+                                                                g.getResultado(),
+                                                                g.getObservaciones()))
                                                 .toList());
         }
 
