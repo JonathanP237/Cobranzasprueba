@@ -60,6 +60,9 @@
   <button class="nav-link" data-page="promedio">
   <span>▥</span> Créditos sobre promedio
 </button>
+<button class="nav-link" data-page="morosos">
+  <span>◷</span> Clientes en mora
+</button>
 </nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -174,6 +177,36 @@
     </div>
 
     <div id="promedio-list" class="table-wrap"></div>
+
+  </article>
+
+</section>
+
+<section id="page-morosos" class="page-section" hidden>
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">SUBCONSULTA CORRELACIONADA EXISTS</p>
+      <h2>Clientes en mora</h2>
+      <p class="muted">
+        Clientes de tu cartera con al menos
+        una cuota vencida y pendiente de pago.
+      </p>
+    </div>
+  </div>
+
+  <article class="panel">
+
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">SEGUIMIENTO DE COBRANZA</p>
+        <h3>Clientes con obligaciones vencidas</h3>
+      </div>
+
+      <strong id="morosos-count">0 clientes</strong>
+    </div>
+
+    <div id="morosos-list" class="table-wrap"></div>
 
   </article>
 

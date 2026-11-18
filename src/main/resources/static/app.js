@@ -265,7 +265,16 @@ async function renderRecaudos() {
 function showPage(name) {
   $$(".page-section").forEach(section => { section.hidden = section.id !== `page-${name}`; });
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === name));
-  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes", recaudos: "Historial de recaudos", cartera: "Resumen de cartera", promedio: "Créditos sobre promedio" }[name] || "Resumen";
+  $("#page-title").textContent = {
+    inicio: "Resumen",
+    creditos: "Mis Créditos",
+    clientes: "Mis Clientes",
+    recaudos: "Historial de recaudos",
+    cartera: "Resumen de cartera",
+    promedio: "Créditos sobre promedio",
+    morosos: "Clientes en mora"
+  }[name] || "Resumen";
+
 }
 
 function getRate(startValue, endValue) {
@@ -491,6 +500,46 @@ async function renderCreditosSobrePromedio() {
   );
 }
 
+async function renderClientesMorosos() {
+
+  const clientes = await api(
+    "/api/reportes/clientes-morosos"
+  );
+
+  $("#morosos-count").textContent =
+    `${clientes.length} cliente(s)`;
+
+  renderTable(
+    $("#morosos-list"),
+    [
+      "ID",
+      "CLIENTE",
+      "TELÉFONO",
+      "SITUACIÓN"
+    ],
+    clientes.map(cliente => `
+      <tr>
+        <td>#${cliente.clienteId}</td>
+
+        <td>
+          <strong>${escapeHtml(cliente.nombreCliente)}</strong>
+        </td>
+
+        <td>
+          ${escapeHtml(cliente.telefonoCliente || "Sin teléfono")}
+        </td>
+
+        <td>
+          <span class="status vencida">
+            Cuotas vencidas
+          </span>
+        </td>
+      </tr>
+    `),
+    "No tienes clientes con cuotas vencidas pendientes"
+  );
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // Manejo de autenticación
@@ -543,6 +592,12 @@ if (pageButton) {
 
   if (pagina === "promedio") {
   renderCreditosSobrePromedio().catch(error => {
+    notify(error.message, "error");
+  });
+}
+
+if (pagina === "morosos") {
+  renderClientesMorosos().catch(error => {
     notify(error.message, "error");
   });
 }
