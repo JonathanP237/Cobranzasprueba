@@ -71,8 +71,6 @@ public class PagoService {
                                                 : "Pago registrado por el cobrador asignado en la app.")
                                 .build();
 
-                gestionCobroRepository.save(gestion);
-
                 // Guardar la gestión de cobro desde Java
                 GestionCobroEntity gestionGuardada = gestionCobroRepository.saveAndFlush(gestion);
 
