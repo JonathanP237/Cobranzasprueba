@@ -13,4 +13,18 @@ import com.ud.cobranzas.model.entity.PagoEntity;
 public interface PagoRepository extends JpaRepository<PagoEntity, Integer> {
     @Query("SELECT COALESCE(SUM(p.monto), 0) FROM PagoEntity p WHERE p.cuota.id = :cuotaId")
     BigDecimal calcularTotalPagadoPorCuota(@Param("cuotaId") Integer cuotaId);
+
+    @Query(value = """
+            SELECT fn_registrar_pago(
+                :cuotaId,
+                :gestionId,
+                :monto,
+                :pagoCompleto
+            )
+            """, nativeQuery = true)
+    Integer ejecutarPagoSQL(
+            @Param("cuotaId") Integer cuotaId,
+            @Param("gestionId") Integer gestionId,
+            @Param("monto") BigDecimal monto,
+            @Param("pagoCompleto") Boolean pagoCompleto);
 }
