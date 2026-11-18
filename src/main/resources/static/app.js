@@ -272,7 +272,8 @@ function showPage(name) {
     recaudos: "Historial de recaudos",
     cartera: "Resumen de cartera",
     promedio: "Créditos sobre promedio",
-    morosos: "Clientes en mora"
+    morosos: "Clientes en mora",
+    vencidas: "Cuotas vencidas"
   }[name] || "Resumen";
 
 }
@@ -540,6 +541,81 @@ async function renderClientesMorosos() {
   );
 }
 
+async function renderCuotasVencidas() {
+
+  const cuotas = await api(
+    "/api/reportes/cuotas-vencidas"
+  );
+
+  const totalPendiente = cuotas.reduce(
+    (suma, cuota) =>
+      suma + Number(cuota.saldoPendiente || 0),
+    0
+  );
+
+  $("#vencidas-count").textContent = cuotas.length;
+
+  $("#vencidas-total").textContent =
+    money2.format(totalPendiente);
+
+  renderTable(
+    $("#vencidas-list"),
+    [
+      "CUOTA",
+      "CRÉDITO",
+      "CLIENTE",
+      "TELÉFONO",
+      "VENCIMIENTO",
+      "DÍAS DE MORA",
+      "VALOR CUOTA",
+      "ABONADO",
+      "SALDO PENDIENTE"
+    ],
+    cuotas.map(cuota => `
+      <tr>
+        <td>#${cuota.numeroCuota}</td>
+
+        <td>#${cuota.creditoId}</td>
+
+        <td>
+          <strong>
+            ${escapeHtml(cuota.nombreCliente)}
+          </strong>
+        </td>
+
+        <td>
+          ${escapeHtml(cuota.telefonoCliente || "—")}
+        </td>
+
+        <td>
+          ${dateValue(cuota.fechaVencimiento)}
+        </td>
+
+        <td>
+          <span class="status vencida">
+            ${Number(cuota.diasMora)} días
+          </span>
+        </td>
+
+        <td>
+          ${money2.format(Number(cuota.montoCuota))}
+        </td>
+
+        <td>
+          ${money2.format(Number(cuota.totalPagado))}
+        </td>
+
+        <td>
+          <strong>
+            ${money2.format(Number(cuota.saldoPendiente))}
+          </strong>
+        </td>
+      </tr>
+    `),
+    "No tienes cuotas vencidas con saldo pendiente"
+  );
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // Manejo de autenticación
@@ -598,6 +674,12 @@ if (pageButton) {
 
 if (pagina === "morosos") {
   renderClientesMorosos().catch(error => {
+    notify(error.message, "error");
+  });
+}
+
+if (pagina === "vencidas") {
+  renderCuotasVencidas().catch(error => {
     notify(error.message, "error");
   });
 }
