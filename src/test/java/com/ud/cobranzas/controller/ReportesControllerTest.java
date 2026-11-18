@@ -159,4 +159,38 @@ class ReportesControllerTest {
 
                 verifyNoInteractions(servicio);
         }
+
+        @Test
+        void consultaResumenMaterializadoDelCobradorAutenticado() {
+
+                CobradorEntity cobrador = CobradorEntity.builder()
+                                .id(7)
+                                .activo(true)
+                                .build();
+
+                when(servicio.obtenerResumenMaterializado(7))
+                                .thenReturn(List.of());
+
+                var respuesta = controller.resumenMaterializado(cobrador);
+
+                assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+                assertEquals(0, respuesta.getBody().size());
+
+                verify(servicio).obtenerResumenMaterializado(7);
+                verifyNoMoreInteractions(servicio);
+        }
+
+        @Test
+        void rechazaResumenMaterializadoSinAutenticacion() {
+
+                ResponseStatusException error = assertThrows(
+                                ResponseStatusException.class,
+                                () -> controller.resumenMaterializado(null));
+
+                assertEquals(
+                                HttpStatus.UNAUTHORIZED,
+                                error.getStatusCode());
+
+                verifyNoInteractions(servicio);
+        }
 }

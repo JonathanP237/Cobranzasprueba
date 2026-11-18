@@ -15,6 +15,7 @@ import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.CuotaVencidaDto;
 import com.ud.cobranzas.model.dto.RecaudoDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
+import com.ud.cobranzas.model.dto.ResumenMaterializadoDto;
 import com.ud.cobranzas.model.entity.CobradorEntity;
 import com.ud.cobranzas.service.ReportesService;
 
@@ -99,6 +100,21 @@ public class ReportesController {
 
                 return ResponseEntity.ok(
                                 reportesService.obtenerCuotasVencidas(
+                                                cobradorAuth.getId()));
+        }
+
+        @GetMapping("/resumen-materializado")
+        public ResponseEntity<List<ResumenMaterializadoDto>> resumenMaterializado(
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                if (cobradorAuth == null) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.UNAUTHORIZED,
+                                        "Debes iniciar sesión.");
+                }
+
+                return ResponseEntity.ok(
+                                reportesService.obtenerResumenMaterializado(
                                                 cobradorAuth.getId()));
         }
 }

@@ -273,7 +273,8 @@ function showPage(name) {
     cartera: "Resumen de cartera",
     promedio: "Créditos sobre promedio",
     morosos: "Clientes en mora",
-    vencidas: "Cuotas vencidas"
+    vencidas: "Cuotas vencidas",
+    materializada: "Resumen financiero"
   }[name] || "Resumen";
 
 }
@@ -616,6 +617,77 @@ async function renderCuotasVencidas() {
   );
 }
 
+async function renderResumenMaterializado() {
+
+  const creditos = await api(
+    "/api/reportes/resumen-materializado"
+  );
+
+  const totalRecaudado = creditos.reduce(
+    (suma, c) => suma + Number(c.totalRecaudado || 0),
+    0
+  );
+
+  const saldoPendiente = creditos.reduce(
+    (suma, c) => suma + Number(c.saldoPendiente || 0),
+    0
+  );
+
+  $("#materializada-count").textContent = creditos.length;
+
+  $("#materializada-recaudado").textContent =
+    money2.format(totalRecaudado);
+
+  $("#materializada-saldo").textContent =
+    money2.format(saldoPendiente);
+
+  renderTable(
+    $("#materializada-list"),
+    [
+      "CRÉDITO",
+      "CLIENTE",
+      "CAPITAL",
+      "TASA",
+      "INTERÉS",
+      "TOTAL FINANCIADO",
+      "RECAUDADO",
+      "SALDO",
+      "ESTADO",
+      "INTERÉS CUBIERTO*"
+    ],
+    creditos.map(c => `
+      <tr>
+        <td>#${c.creditoId}</td>
+
+        <td>
+          <strong>${escapeHtml(c.nombreCliente)}</strong>
+        </td>
+
+        <td>${money2.format(Number(c.capitalPrestado))}</td>
+
+        <td>${Number(c.tasaPct).toFixed(2)}%</td>
+
+        <td>${money2.format(Number(c.interesGenerado))}</td>
+
+        <td>${money2.format(Number(c.totalARecaudar))}</td>
+
+        <td>${money2.format(Number(c.totalRecaudado))}</td>
+
+        <td>
+          <strong>
+            ${money2.format(Number(c.saldoPendiente))}
+          </strong>
+        </td>
+
+        <td>${escapeHtml(pretty(c.estadoCredito))}</td>
+
+        <td>${c.indicadorIntereses ? "Sí*" : "No*"}</td>
+      </tr>
+    `),
+    "No hay créditos en el resumen materializado"
+  );
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // Manejo de autenticación
@@ -680,6 +752,12 @@ if (pagina === "morosos") {
 
 if (pagina === "vencidas") {
   renderCuotasVencidas().catch(error => {
+    notify(error.message, "error");
+  });
+}
+
+if (pagina === "materializada") {
+  renderResumenMaterializado().catch(error => {
     notify(error.message, "error");
   });
 }
