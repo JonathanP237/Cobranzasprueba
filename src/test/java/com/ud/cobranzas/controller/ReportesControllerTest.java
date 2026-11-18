@@ -58,4 +58,40 @@ class ReportesControllerTest {
 
         verifyNoInteractions(servicio);
     }
+
+    @Test
+void consultaCreditosSobrePromedioDelCobradorAutenticado() {
+
+    CobradorEntity cobrador = CobradorEntity.builder()
+            .id(7)
+            .activo(true)
+            .build();
+
+    when(servicio.obtenerCreditosSobrePromedio(7))
+            .thenReturn(List.of());
+
+    var respuesta = controller.creditosSobrePromedio(cobrador);
+
+    assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+    assertEquals(0, respuesta.getBody().size());
+
+    verify(servicio).obtenerCreditosSobrePromedio(7);
+    verifyNoMoreInteractions(servicio);
+}
+
+@Test
+void rechazaPromedioSinAutenticacion() {
+
+    ResponseStatusException error = assertThrows(
+            ResponseStatusException.class,
+            () -> controller.creditosSobrePromedio(null)
+    );
+
+    assertEquals(
+            HttpStatus.UNAUTHORIZED,
+            error.getStatusCode()
+    );
+
+    verifyNoInteractions(servicio);
+}
 }

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
 import com.ud.cobranzas.repository.ReportesRepository;
 
@@ -104,4 +105,52 @@ class ReportesServiceTest {
 
         verify(repositorio).obtenerResumenCartera(999);
     }
+
+    @Test
+void transformaCreditosSobrePromedioCorrectamente() {
+
+    ReportesRepository.CreditoPromedioFila fila =
+            mock(ReportesRepository.CreditoPromedioFila.class);
+
+    when(fila.getCreditoId()).thenReturn(12);
+    when(fila.getNombreCliente()).thenReturn("Cliente prueba");
+    when(fila.getCapital())
+            .thenReturn(new BigDecimal("1500000.00"));
+    when(fila.getTasaPct())
+            .thenReturn(new BigDecimal("20.00"));
+    when(fila.getEstado()).thenReturn("AL_DIA");
+    when(fila.getExcesoSobrePromedio())
+            .thenReturn(new BigDecimal("400000.00"));
+
+    when(repositorio.obtenerCreditosSobrePromedio(3))
+            .thenReturn(List.of(fila));
+
+    List<CreditoSobrePromedioDto> resultado =
+            servicio.obtenerCreditosSobrePromedio(3);
+
+    assertEquals(1, resultado.size());
+    assertEquals(12, resultado.get(0).creditoId());
+    assertEquals("Cliente prueba", resultado.get(0).nombreCliente());
+
+    assertEquals(
+            0,
+            new BigDecimal("400000.00")
+                    .compareTo(resultado.get(0).excesoSobrePromedio())
+    );
+
+    verify(repositorio).obtenerCreditosSobrePromedio(3);
+}
+
+@Test
+void admiteCobradorSinCreditosSobrePromedio() {
+
+    when(repositorio.obtenerCreditosSobrePromedio(8))
+            .thenReturn(List.of());
+
+    var resultado = servicio.obtenerCreditosSobrePromedio(8);
+
+    assertEquals(0, resultado.size());
+
+    verify(repositorio).obtenerCreditosSobrePromedio(8);
+}
 }

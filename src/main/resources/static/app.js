@@ -235,7 +235,7 @@ async function renderRecaudos() {
 function showPage(name) {
   $$(".page-section").forEach(section => { section.hidden = section.id !== `page-${name}`; });
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === name));
-  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes", recaudos: "Historial de recaudos", cartera: "Resumen de cartera" }[name] || "Resumen";
+  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes", recaudos: "Historial de recaudos", cartera: "Resumen de cartera", promedio: "Créditos sobre promedio" }[name] || "Resumen";
 }
 
 function getRate(startValue, endValue) {
@@ -357,6 +357,56 @@ async function renderResumenCartera() {
   );
 }
 
+async function renderCreditosSobrePromedio() {
+
+  const creditos = await api(
+    "/api/reportes/creditos-sobre-promedio"
+  );
+
+  $("#promedio-count").textContent =
+    `${creditos.length} crédito(s)`;
+
+  renderTable(
+    $("#promedio-list"),
+    [
+      "CRÉDITO",
+      "CLIENTE",
+      "CAPITAL",
+      "TASA",
+      "ESTADO",
+      "EXCESO SOBRE PROMEDIO"
+    ],
+    creditos.map(credito => `
+      <tr>
+        <td>#${credito.creditoId}</td>
+
+        <td>
+          <strong>${escapeHtml(credito.nombreCliente)}</strong>
+        </td>
+
+        <td>
+          ${money2.format(Number(credito.capital))}
+        </td>
+
+        <td>
+          ${Number(credito.tasaPct).toFixed(2)}%
+        </td>
+
+        <td>
+          ${escapeHtml(pretty(credito.estado))}
+        </td>
+
+        <td>
+          <strong>
+            ${money2.format(Number(credito.excesoSobrePromedio))}
+          </strong>
+        </td>
+      </tr>
+    `),
+    "No tienes créditos que superen el promedio general"
+  );
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
   // Manejo de autenticación
@@ -392,21 +442,28 @@ document.addEventListener("DOMContentLoaded", () => {
 if (pageButton) {
   event.preventDefault();
 
-  showPage(pageButton.dataset.page);
+  const pagina = pageButton.dataset.page;
+  showPage(pagina);
 
-  if (pageButton.dataset.page === "recaudos") {
+  if (pagina === "recaudos") {
     renderRecaudos().catch(error => {
       notify(error.message, "error");
     });
   }
 
-  return;
-}
+  if (pagina === "cartera") {
+    renderResumenCartera().catch(error => {
+      notify(error.message, "error");
+    });
+  }
 
-if (pageButton.dataset.page === "cartera") {
-  renderResumenCartera().catch(error => {
+  if (pagina === "promedio") {
+  renderCreditosSobrePromedio().catch(error => {
     notify(error.message, "error");
   });
+}
+
+  return;
 }
     const openButton = event.target.closest("[data-open]");
     if (openButton) {
