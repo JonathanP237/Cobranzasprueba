@@ -100,4 +100,25 @@ public interface ReportesRepository
 
         BigDecimal getExcesoSobrePromedio();
     }
+
+    @Query(value = """
+            SELECT
+                r.cliente_id AS "clienteId",
+                r.nombre_cliente AS "nombreCliente",
+                r.telefono_cliente AS "telefonoCliente"
+            FROM fn_reporte_clientes_morosos_exists(:cobradorId) r
+            ORDER BY r.nombre_cliente
+            """, nativeQuery = true)
+    List<ClienteMorosoFila> obtenerClientesMorosos(
+            @Param("cobradorId") Integer cobradorId);
+
+    interface ClienteMorosoFila {
+
+        Integer getClienteId();
+
+        String getNombreCliente();
+
+        String getTelefonoCliente();
+    }
+
 }

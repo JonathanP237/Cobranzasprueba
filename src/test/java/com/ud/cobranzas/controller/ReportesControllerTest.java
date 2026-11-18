@@ -18,80 +18,108 @@ import com.ud.cobranzas.service.ReportesService;
 
 class ReportesControllerTest {
 
-    private final ReportesService servicio =
-            mock(ReportesService.class);
+        private final ReportesService servicio = mock(ReportesService.class);
 
-    private final ReportesController controller =
-            new ReportesController(servicio);
+        private final ReportesController controller = new ReportesController(servicio);
 
-    @Test
-    void consultaRecaudosDelCobradorAutenticado() {
+        @Test
+        void consultaRecaudosDelCobradorAutenticado() {
 
-        CobradorEntity cobrador = CobradorEntity.builder()
-                .id(7)
-                .activo(true)
-                .build();
+                CobradorEntity cobrador = CobradorEntity.builder()
+                                .id(7)
+                                .activo(true)
+                                .build();
 
-        when(servicio.obtenerRecaudos(7))
-                .thenReturn(List.of());
+                when(servicio.obtenerRecaudos(7))
+                                .thenReturn(List.of());
 
-        var respuesta = controller.historialRecaudos(cobrador);
+                var respuesta = controller.historialRecaudos(cobrador);
 
-        assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+                assertEquals(HttpStatus.OK, respuesta.getStatusCode());
 
-        verify(servicio).obtenerRecaudos(7);
-        verifyNoMoreInteractions(servicio);
-    }
+                verify(servicio).obtenerRecaudos(7);
+                verifyNoMoreInteractions(servicio);
+        }
 
-    @Test
-    void impideConsultaSinAutenticacion() {
+        @Test
+        void impideConsultaSinAutenticacion() {
 
-        ResponseStatusException error = assertThrows(
-                ResponseStatusException.class,
-                () -> controller.historialRecaudos(null)
-        );
+                ResponseStatusException error = assertThrows(
+                                ResponseStatusException.class,
+                                () -> controller.historialRecaudos(null));
 
-        assertEquals(
-                HttpStatus.UNAUTHORIZED,
-                error.getStatusCode()
-        );
+                assertEquals(
+                                HttpStatus.UNAUTHORIZED,
+                                error.getStatusCode());
 
-        verifyNoInteractions(servicio);
-    }
+                verifyNoInteractions(servicio);
+        }
 
-    @Test
-void consultaCreditosSobrePromedioDelCobradorAutenticado() {
+        @Test
+        void consultaCreditosSobrePromedioDelCobradorAutenticado() {
 
-    CobradorEntity cobrador = CobradorEntity.builder()
-            .id(7)
-            .activo(true)
-            .build();
+                CobradorEntity cobrador = CobradorEntity.builder()
+                                .id(7)
+                                .activo(true)
+                                .build();
 
-    when(servicio.obtenerCreditosSobrePromedio(7))
-            .thenReturn(List.of());
+                when(servicio.obtenerCreditosSobrePromedio(7))
+                                .thenReturn(List.of());
 
-    var respuesta = controller.creditosSobrePromedio(cobrador);
+                var respuesta = controller.creditosSobrePromedio(cobrador);
 
-    assertEquals(HttpStatus.OK, respuesta.getStatusCode());
-    assertEquals(0, respuesta.getBody().size());
+                assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+                assertEquals(0, respuesta.getBody().size());
 
-    verify(servicio).obtenerCreditosSobrePromedio(7);
-    verifyNoMoreInteractions(servicio);
-}
+                verify(servicio).obtenerCreditosSobrePromedio(7);
+                verifyNoMoreInteractions(servicio);
+        }
 
-@Test
-void rechazaPromedioSinAutenticacion() {
+        @Test
+        void rechazaPromedioSinAutenticacion() {
 
-    ResponseStatusException error = assertThrows(
-            ResponseStatusException.class,
-            () -> controller.creditosSobrePromedio(null)
-    );
+                ResponseStatusException error = assertThrows(
+                                ResponseStatusException.class,
+                                () -> controller.creditosSobrePromedio(null));
 
-    assertEquals(
-            HttpStatus.UNAUTHORIZED,
-            error.getStatusCode()
-    );
+                assertEquals(
+                                HttpStatus.UNAUTHORIZED,
+                                error.getStatusCode());
 
-    verifyNoInteractions(servicio);
-}
+                verifyNoInteractions(servicio);
+        }
+
+        @Test
+        void consultaClientesMorososDelCobradorAutenticado() {
+
+                CobradorEntity cobrador = CobradorEntity.builder()
+                                .id(7)
+                                .activo(true)
+                                .build();
+
+                when(servicio.obtenerClientesMorosos(7))
+                                .thenReturn(List.of());
+
+                var respuesta = controller.clientesMorosos(cobrador);
+
+                assertEquals(HttpStatus.OK, respuesta.getStatusCode());
+                assertEquals(0, respuesta.getBody().size());
+
+                verify(servicio).obtenerClientesMorosos(7);
+                verifyNoMoreInteractions(servicio);
+        }
+
+        @Test
+        void rechazaClientesMorososSinAutenticacion() {
+
+                ResponseStatusException error = assertThrows(
+                                ResponseStatusException.class,
+                                () -> controller.clientesMorosos(null));
+
+                assertEquals(
+                                HttpStatus.UNAUTHORIZED,
+                                error.getStatusCode());
+
+                verifyNoInteractions(servicio);
+        }
 }

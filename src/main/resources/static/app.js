@@ -25,7 +25,8 @@ const labels = {
   MENSAJE: "Mensaje", VISITA: "Visita", PAGO_CONFIRMADO: "Pago confirmado",
   SIN_RESPUESTA: "Sin respuesta", PROMESA_PAGO: "Promesa de pago",
   ACUERDO_PAGO: "Acuerdo de pago", REFINANCIACION: "Refinanciación",
-  CONTACTO_EXITOSO: "Contacto exitoso", RECORDATORIO: "Recordatorio"
+  CONTACTO_EXITOSO: "Contacto exitoso", RECORDATORIO: "Recordatorio",
+  EN_MORA: "En mora"
 };
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -117,14 +118,38 @@ function renderTable(container, headers, rows, emptyMessage) {
 }
 
 function creditRow(credit, withAction = true) {
+
+  const estadoVisual = estadoVisualCredito(credit);
+
   return `<tr>
-    <td><span class="id-cell">#${credit.id}</span></td>
-    <td><strong>${escapeHtml(credit.nombreCliente)}</strong><small>${escapeHtml(credit.nombreCobrador)}</small></td>
+    <td>
+      <span class="id-cell">#${credit.id}</span>
+    </td>
+
+    <td>
+      <strong>${escapeHtml(credit.nombreCliente)}</strong>
+      <small>${escapeHtml(credit.nombreCobrador)}</small>
+    </td>
+
     <td>${money.format(credit.monto)}</td>
-    <td><span class="rate-pill">${Number(credit.tasaInteres).toFixed(0)}%</span></td>
+
+    <td>
+      <span class="rate-pill">
+        ${Number(credit.tasaInteres).toFixed(0)}%
+      </span>
+    </td>
+
     <td>${dateValue(credit.fechaLimite)}</td>
-    <td><span class="status ${credit.estado.toLowerCase()}">${pretty(credit.estado)}</span></td>
-    ${withAction ? `<td><button class="row-action" data-credit="${credit.id}">Ver detalle →</button></td>` : ""}
+
+    <td>
+      <span class="status ${estadoVisual.toLowerCase()}">
+        ${pretty(estadoVisual)}
+      </span>
+    </td>
+
+    ${withAction
+      ? `<td><button class="row-action" data-credit="${credit.id}">Ver detalle →</button></td>`
+      : ""}
   </tr>`;
 }
 
@@ -149,10 +174,15 @@ async function refresh() {
 
     fillClientOptions();
 
-    $("#credit-client").disabled = clients.length === 0;
-    renderClients();
-    renderCredits();
-    await renderOverview();
+$("#credit-client").disabled = clients.length === 0;
+
+renderClients();
+
+// Primero cargar las cuotas de todos los créditos
+await renderOverview();
+
+// Después mostrar los créditos con sus estados calculados
+renderCredits();
   } catch (error) {
     notify(error.message, "error");
   }
@@ -235,7 +265,16 @@ async function renderRecaudos() {
 function showPage(name) {
   $$(".page-section").forEach(section => { section.hidden = section.id !== `page-${name}`; });
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === name));
-  $("#page-title").textContent = { inicio: "Resumen", creditos: "Mis Créditos", clientes: "Mis Clientes", recaudos: "Historial de recaudos", cartera: "Resumen de cartera", promedio: "Créditos sobre promedio" }[name] || "Resumen";
+  $("#page-title").textContent = {
+    inicio: "Resumen",
+    creditos: "Mis Créditos",
+    clientes: "Mis Clientes",
+    recaudos: "Historial de recaudos",
+    cartera: "Resumen de cartera",
+    promedio: "Créditos sobre promedio",
+    morosos: "Clientes en mora"
+  }[name] || "Resumen";
+
 }
 
 function getRate(startValue, endValue) {
@@ -275,6 +314,7 @@ async function openDetail(creditId) {
     api(`/api/cuotas/credito/${credit.id}`),
     api(`/api/creditos/${credit.id}/gestiones`)
   ]);
+  const estadoVisual = estadoVisualCredito(credit, quotas);
   $("#detail-title").textContent = `Crédito #${credit.id} — ${credit.nombreCliente}`;
   const total = quotas.reduce((acc, q) => acc + Number(q.montoCuota), 0);
   const paid = quotas.reduce((acc, q) => acc + Number(q.montoPagado || 0), 0);
@@ -290,14 +330,17 @@ async function openDetail(creditId) {
     <div><span>Total financiado</span><strong>${money.format(total)}</strong></div>
     <div><span>Total recaudado</span><strong>${money.format(paid)}</strong></div>
     <div><span>Saldo pendiente</span><strong>${money.format(pending)}</strong></div>
-    <div><span>Estado</span><strong class="status ${credit.estado.toLowerCase()}">${pretty(credit.estado)}</strong></div>
+    <div><span>Estado</span><strong class="status ${estadoVisual.toLowerCase()}">${pretty(estadoVisual)}</strong></div>
     <div><span>Interés cubierto</span><strong>${interestCovered ? "✅ Sí (Apto refinanciar)" : "❌ No (" + money.format(paid) + "/" + money.format(interest) + ")"}</strong></div>
   `;
 
   renderTable($("#detail-installments"), ["CUOTA", "VALOR", "ABONADO", "SALDO", "VENCE", "ESTADO"],
     quotas.map(quota => {
       const balance = Math.max(0, Number(quota.montoCuota) - Number(quota.montoPagado || 0));
-      return `<tr><td>#${quota.numeroCuota}</td><td>${money.format(quota.montoCuota)}</td><td>${money.format(quota.montoPagado || 0)}</td><td>${money.format(balance)}</td><td>${dateValue(quota.fechaVencimiento)}</td><td><span class="status ${quota.estado.toLowerCase()}">${pretty(quota.estado)}</span></td></tr>`;
+      const estadoVisual = estadoVisualCuota(quota);
+      return `<tr><td>#${quota.numeroCuota}</td><td>${money.format(quota.montoCuota)}</td><td>${money.format(quota.montoPagado || 0)}</td><td>${money.format(balance)}</td><td>${dateValue(quota.fechaVencimiento)}</td><td><span class="status ${estadoVisual.toLowerCase()}">
+  ${pretty(estadoVisual)}
+</span></td></tr>`;
     }), "Sin cuotas generadas");
 
   $("#detail-history").innerHTML = history.length
@@ -317,6 +360,8 @@ function openManagement() {
       $("#management-dialog").showModal();
     }).catch(error => notify(error.message, "error"));
 }
+
+
 
 function openPayment() {
   if (!state.selectedCredit) return;
@@ -355,6 +400,54 @@ async function renderResumenCartera() {
     ],
     "No hay información de cartera"
   );
+}
+
+function estadoVisualCuota(cuota) {
+
+  const ahora = new Date();
+
+  const hoy = [
+    ahora.getFullYear(),
+    String(ahora.getMonth() + 1).padStart(2, "0"),
+    String(ahora.getDate()).padStart(2, "0")
+  ].join("-");
+
+  if (
+    cuota.estado === "PENDIENTE" &&
+    cuota.fechaVencimiento < hoy
+  ) {
+    return "VENCIDA";
+  }
+
+  return cuota.estado;
+}
+
+function estadoVisualCredito(credito, cuotas = state.quotas) {
+
+  // Respetar los estados definitivos del crédito
+  if (credito.estado !== "AL_DIA") {
+    return credito.estado;
+  }
+
+  // Buscar cuotas vencidas con saldo pendiente
+  const tieneCuotasVencidas = cuotas.some(cuota => {
+
+    const perteneceAlCredito =
+      Number(cuota.creditoId) === Number(credito.id);
+
+    const estaVencida =
+      estadoVisualCuota(cuota) === "VENCIDA";
+
+    const saldoPendiente =
+      Number(cuota.montoCuota) -
+      Number(cuota.montoPagado || 0);
+
+    return perteneceAlCredito &&
+           estaVencida &&
+           saldoPendiente > 0;
+  });
+
+  return tieneCuotasVencidas ? "EN_MORA" : "AL_DIA";
 }
 
 async function renderCreditosSobrePromedio() {
@@ -404,6 +497,46 @@ async function renderCreditosSobrePromedio() {
       </tr>
     `),
     "No tienes créditos que superen el promedio general"
+  );
+}
+
+async function renderClientesMorosos() {
+
+  const clientes = await api(
+    "/api/reportes/clientes-morosos"
+  );
+
+  $("#morosos-count").textContent =
+    `${clientes.length} cliente(s)`;
+
+  renderTable(
+    $("#morosos-list"),
+    [
+      "ID",
+      "CLIENTE",
+      "TELÉFONO",
+      "SITUACIÓN"
+    ],
+    clientes.map(cliente => `
+      <tr>
+        <td>#${cliente.clienteId}</td>
+
+        <td>
+          <strong>${escapeHtml(cliente.nombreCliente)}</strong>
+        </td>
+
+        <td>
+          ${escapeHtml(cliente.telefonoCliente || "Sin teléfono")}
+        </td>
+
+        <td>
+          <span class="status vencida">
+            Cuotas vencidas
+          </span>
+        </td>
+      </tr>
+    `),
+    "No tienes clientes con cuotas vencidas pendientes"
   );
 }
 
@@ -459,6 +592,12 @@ if (pageButton) {
 
   if (pagina === "promedio") {
   renderCreditosSobrePromedio().catch(error => {
+    notify(error.message, "error");
+  });
+}
+
+if (pagina === "morosos") {
+  renderClientesMorosos().catch(error => {
     notify(error.message, "error");
   });
 }
