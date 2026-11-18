@@ -72,4 +72,32 @@ public interface ReportesRepository
 
         LocalDateTime getFechaPago();
     }
+
+    @Query(value = """
+            SELECT
+                r.credito_id AS "creditoId",
+                r.nombre_cliente AS "nombreCliente",
+                r.capital AS "capital",
+                r.tasa_pct AS "tasaPct",
+                r.estado AS "estado",
+                r.exceso_sobre_promedio AS "excesoSobrePromedio"
+            FROM fn_reporte_creditos_promedio(:cobradorId) r
+            ORDER BY r.capital DESC
+            """, nativeQuery = true)
+    List<CreditoPromedioFila> obtenerCreditosSobrePromedio(
+            @Param("cobradorId") Integer cobradorId);
+
+    interface CreditoPromedioFila {
+        Integer getCreditoId();
+
+        String getNombreCliente();
+
+        BigDecimal getCapital();
+
+        BigDecimal getTasaPct();
+
+        String getEstado();
+
+        BigDecimal getExcesoSobrePromedio();
+    }
 }

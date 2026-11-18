@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.RecaudoDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
 import com.ud.cobranzas.repository.ReportesRepository;
@@ -52,5 +53,22 @@ public class ReportesService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Cobrador no encontrado."));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CreditoSobrePromedioDto> obtenerCreditosSobrePromedio(
+            Integer cobradorId) {
+
+        return reportesRepository
+                .obtenerCreditosSobrePromedio(cobradorId)
+                .stream()
+                .map(r -> new CreditoSobrePromedioDto(
+                        r.getCreditoId(),
+                        r.getNombreCliente(),
+                        r.getCapital(),
+                        r.getTasaPct(),
+                        r.getEstado(),
+                        r.getExcesoSobrePromedio()))
+                .toList();
     }
 }

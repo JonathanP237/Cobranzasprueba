@@ -34,19 +34,26 @@
     </form>
   </dialog>
 
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#" data-page="inicio"><span class="brand-mark">C</span><span>Cartera<small>GESTIÓN DE COBRANZAS</small></span></a>
-      <p class="nav-caption">MENÚ PRINCIPAL</p>
-      <nav class="navigation" aria-label="Navegación">
-        <button class="nav-link active" data-page="inicio"><span>◫</span> Resumen</button>
-        <button class="nav-link" data-page="creditos"><span>▤</span> Mis Créditos</button>
-        <button class="nav-link" data-page="clientes"><span>♙</span> Mis Clientes</button>
-        <button class="nav-link" data-page="recaudos"><span>▣</span> Historial de recaudos
-        <button class="nav-link" data-page="cartera"><span>◫</span> Resumen de cartera
+  <nav class="navigation" aria-label="Navegación">
+  <button class="nav-link active" data-page="inicio">
+    <span>◫</span> Resumen
+  </button>
+  <button class="nav-link" data-page="creditos">
+    <span>▤</span> Mis Créditos
+  </button>
+  <button class="nav-link" data-page="clientes">
+    <span>♙</span> Mis Clientes
+  </button>
+  <button class="nav-link" data-page="recaudos">
+    <span>▣</span> Historial de recaudos
+  </button>
+  <button class="nav-link" data-page="cartera">
+    <span>◫</span> Resumen de cartera
+  </button>
+  <button class="nav-link" data-page="promedio">
+  <span>▥</span> Créditos sobre promedio
 </button>
-</button>
-      </nav>
+</nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
         <span id="user-session-badge">Iniciando sesión...</span>
@@ -116,8 +123,8 @@
 
     <div id="recaudos-list" class="table-wrap"></div>
   </article>
-
-  <section id="page-cartera" class="page-section" hidden>
+</section>
+<section id="page-cartera" class="page-section" hidden>
   <div class="section-heading">
     <div>
       <p class="eyebrow">REPORTE DE BASES DE DATOS</p>
@@ -135,6 +142,33 @@
     <div id="cartera-resumen" class="table-wrap"></div>
   </article>
 </section>
+<section id="page-promedio" class="page-section" hidden>
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">SUBCONSULTA ESCALAR</p>
+      <h2>Créditos sobre el promedio</h2>
+      <p class="muted">
+        Créditos de tu cartera cuyo capital supera
+        el promedio general de créditos.
+      </p>
+    </div>
+  </div>
+
+  <article class="panel">
+
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">ANÁLISIS DE CARTERA</p>
+        <h3>Créditos superiores al promedio</h3>
+      </div>
+
+      <strong id="promedio-count">0 créditos</strong>
+    </div>
+
+    <div id="promedio-list" class="table-wrap"></div>
+
+  </article>
 
 </section>
       <footer>Gestión de cobranzas <span>•</span> Asignación Exclusiva por Cobrador</footer>

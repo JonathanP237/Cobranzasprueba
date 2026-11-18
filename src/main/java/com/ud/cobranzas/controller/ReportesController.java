@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.RecaudoDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
 import com.ud.cobranzas.model.entity.CobradorEntity;
@@ -36,6 +37,21 @@ public class ReportesController {
 
                 return ResponseEntity.ok(
                                 reportesService.obtenerRecaudos(
+                                                cobradorAuth.getId()));
+        }
+
+        @GetMapping("/creditos-sobre-promedio")
+        public ResponseEntity<List<CreditoSobrePromedioDto>> creditosSobrePromedio(
+                        @AuthenticationPrincipal CobradorEntity cobradorAuth) {
+
+                if (cobradorAuth == null) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.UNAUTHORIZED,
+                                        "Debes iniciar sesión.");
+                }
+
+                return ResponseEntity.ok(
+                                reportesService.obtenerCreditosSobrePromedio(
                                                 cobradorAuth.getId()));
         }
 
