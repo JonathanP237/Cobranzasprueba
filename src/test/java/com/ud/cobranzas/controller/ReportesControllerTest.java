@@ -122,4 +122,41 @@ class ReportesControllerTest {
 
                 verifyNoInteractions(servicio);
         }
+
+        @Test
+        void consultaCuotasVencidasDelCobradorAutenticado() {
+
+                CobradorEntity cobrador = CobradorEntity.builder()
+                                .id(7)
+                                .activo(true)
+                                .build();
+
+                when(servicio.obtenerCuotasVencidas(7))
+                                .thenReturn(List.of());
+
+                var respuesta = controller.cuotasVencidas(cobrador);
+
+                assertEquals(
+                                HttpStatus.OK,
+                                respuesta.getStatusCode());
+
+                assertEquals(0, respuesta.getBody().size());
+
+                verify(servicio).obtenerCuotasVencidas(7);
+                verifyNoMoreInteractions(servicio);
+        }
+
+        @Test
+        void rechazaCuotasVencidasSinAutenticacion() {
+
+                ResponseStatusException error = assertThrows(
+                                ResponseStatusException.class,
+                                () -> controller.cuotasVencidas(null));
+
+                assertEquals(
+                                HttpStatus.UNAUTHORIZED,
+                                error.getStatusCode());
+
+                verifyNoInteractions(servicio);
+        }
 }

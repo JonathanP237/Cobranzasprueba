@@ -1,6 +1,7 @@
 package com.ud.cobranzas.repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -121,4 +122,58 @@ public interface ReportesRepository
         String getTelefonoCliente();
     }
 
+    @Query(value = """
+            SELECT
+                v.cuota_id AS "cuotaId",
+                v.credito_id AS "creditoId",
+                v.numero_cuota AS "numeroCuota",
+                v.nombre_cliente AS "nombreCliente",
+                v.telefono_cliente AS "telefonoCliente",
+                v.fecha_vencimiento AS "fechaVencimiento",
+                (CURRENT_DATE - v.fecha_vencimiento) AS "diasMora",
+                v.monto_cuota AS "montoCuota",
+                COALESCE(ab.total_pagado, 0) AS "totalPagado",
+                GREATEST(
+                    v.monto_cuota - COALESCE(ab.total_pagado, 0),
+                    0
+                ) AS "saldoPendiente"
+            FROM vista_cuotas_vencidas v
+            JOIN creditos cr ON cr.id = v.credito_id
+            LEFT JOIN (
+                SELECT
+                    cuota_id,
+                    SUM(monto) AS total_pagado
+                FROM pagos
+                GROUP BY cuota_id
+            ) ab ON ab.cuota_id = v.cuota_id
+            WHERE cr.cobrador_id = :cobradorId
+              AND cr.estado = 'AL_DIA'
+              AND v.monto_cuota > COALESCE(ab.total_pagado, 0)
+            ORDER BY v.fecha_vencimiento ASC, v.cuota_id
+            """, nativeQuery = true)
+    List<CuotaVencidaFila> obtenerCuotasVencidas(
+            @Param("cobradorId") Integer cobradorId);
+
+    interface CuotaVencidaFila {
+
+        Integer getCuotaId();
+
+        Integer getCreditoId();
+
+        Integer getNumeroCuota();
+
+        String getNombreCliente();
+
+        String getTelefonoCliente();
+
+        LocalDate getFechaVencimiento();
+
+        Integer getDiasMora();
+
+        BigDecimal getMontoCuota();
+
+        BigDecimal getTotalPagado();
+
+        BigDecimal getSaldoPendiente();
+    }
 }

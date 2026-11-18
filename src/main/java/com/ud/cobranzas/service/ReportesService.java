@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.ud.cobranzas.model.dto.ClienteMorosoDto;
 import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
+import com.ud.cobranzas.model.dto.CuotaVencidaDto;
 import com.ud.cobranzas.model.dto.RecaudoDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
 import com.ud.cobranzas.repository.ReportesRepository;
@@ -84,6 +85,27 @@ public class ReportesService {
                                                 r.getClienteId(),
                                                 r.getNombreCliente(),
                                                 r.getTelefonoCliente()))
+                                .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public List<CuotaVencidaDto> obtenerCuotasVencidas(
+                        Integer cobradorId) {
+
+                return reportesRepository
+                                .obtenerCuotasVencidas(cobradorId)
+                                .stream()
+                                .map(r -> new CuotaVencidaDto(
+                                                r.getCuotaId(),
+                                                r.getCreditoId(),
+                                                r.getNumeroCuota(),
+                                                r.getNombreCliente(),
+                                                r.getTelefonoCliente(),
+                                                r.getFechaVencimiento(),
+                                                r.getDiasMora(),
+                                                r.getMontoCuota(),
+                                                r.getTotalPagado(),
+                                                r.getSaldoPendiente()))
                                 .toList();
         }
 }

@@ -2,6 +2,7 @@
 package com.ud.cobranzas.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.ud.cobranzas.model.dto.ClienteMorosoDto;
 import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
+import com.ud.cobranzas.model.dto.CuotaVencidaDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
 import com.ud.cobranzas.repository.ReportesRepository;
 
@@ -179,5 +181,64 @@ class ReportesServiceTest {
                 assertEquals(0, resultado.size());
 
                 verify(repositorio).obtenerClientesMorosos(8);
+        }
+
+        @Test
+        void transformaCuotasVencidasConPagosParciales() {
+
+                ReportesRepository.CuotaVencidaFila fila = mock(ReportesRepository.CuotaVencidaFila.class);
+
+                when(fila.getCuotaId()).thenReturn(15);
+                when(fila.getCreditoId()).thenReturn(4);
+                when(fila.getNumeroCuota()).thenReturn(2);
+                when(fila.getNombreCliente()).thenReturn("Cliente de prueba");
+                when(fila.getTelefonoCliente()).thenReturn("3001234567");
+
+                when(fila.getFechaVencimiento())
+                                .thenReturn(LocalDate.of(2026, 11, 5));
+
+                when(fila.getDiasMora()).thenReturn(12);
+
+                when(fila.getMontoCuota())
+                                .thenReturn(new BigDecimal("200000.00"));
+
+                when(fila.getTotalPagado())
+                                .thenReturn(new BigDecimal("80000.00"));
+
+                when(fila.getSaldoPendiente())
+                                .thenReturn(new BigDecimal("120000.00"));
+
+                when(repositorio.obtenerCuotasVencidas(3))
+                                .thenReturn(List.of(fila));
+
+                List<CuotaVencidaDto> resultado = servicio.obtenerCuotasVencidas(3);
+
+                assertEquals(1, resultado.size());
+
+                CuotaVencidaDto cuota = resultado.get(0);
+
+                assertEquals(15, cuota.cuotaId());
+                assertEquals(4, cuota.creditoId());
+                assertEquals(12, cuota.diasMora());
+
+                assertEquals(
+                                0,
+                                new BigDecimal("120000.00")
+                                                .compareTo(cuota.saldoPendiente()));
+
+                verify(repositorio).obtenerCuotasVencidas(3);
+        }
+
+        @Test
+        void admiteCobradorSinCuotasVencidas() {
+
+                when(repositorio.obtenerCuotasVencidas(8))
+                                .thenReturn(List.of());
+
+                List<CuotaVencidaDto> resultado = servicio.obtenerCuotasVencidas(8);
+
+                assertEquals(0, resultado.size());
+
+                verify(repositorio).obtenerCuotasVencidas(8);
         }
 }

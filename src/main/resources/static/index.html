@@ -63,6 +63,9 @@
 <button class="nav-link" data-page="morosos">
   <span>◷</span> Clientes en mora
 </button>
+<button class="nav-link" data-page="vencidas">
+  <span>▤</span> Cuotas vencidas
+</button>
 </nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -211,6 +214,53 @@
   </article>
 
 </section>
+
+<section id="page-vencidas" class="page-section" hidden>
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">VISTA NORMAL DE POSTGRESQL</p>
+      <h2>Cuotas vencidas</h2>
+      <p class="muted">
+        Seguimiento de las cuotas vencidas,
+        días de mora y saldos pendientes.
+      </p>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+
+    <article class="stat-card">
+      <span class="stat-icon amber">◷</span>
+      <span class="stat-label">Cuotas vencidas</span>
+      <strong id="vencidas-count">0</strong>
+      <small>Con saldo pendiente</small>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-icon violet">$</span>
+      <span class="stat-label">Saldo vencido</span>
+      <strong id="vencidas-total">$0</strong>
+      <small>Por recuperar</small>
+    </article>
+
+  </div>
+
+  <article class="panel">
+
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">DETALLE DE OBLIGACIONES</p>
+        <h3>Cuotas pendientes vencidas</h3>
+      </div>
+    </div>
+
+    <div id="vencidas-list" class="table-wrap"></div>
+
+  </article>
+
+</section>
+
       <footer>Gestión de cobranzas  </footer>
     </main>
   </div>
