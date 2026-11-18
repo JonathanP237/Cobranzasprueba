@@ -176,4 +176,51 @@ public interface ReportesRepository
 
         BigDecimal getSaldoPendiente();
     }
+
+    @Query(value = """
+            SELECT
+                v.credito_id AS "creditoId",
+                v.nombre_cliente AS "nombreCliente",
+                v.frecuencia_pago AS "frecuenciaPago",
+                v.capital_prestado AS "capitalPrestado",
+                v.tasa_pct AS "tasaPct",
+                v.interes_generado AS "interesGenerado",
+                v.total_a_recaudar AS "totalARecaudar",
+                v.estado_credito AS "estadoCredito",
+                v.total_recaudado AS "totalRecaudado",
+                v.saldo_pendiente AS "saldoPendiente",
+                v.interes_cubierto_apto_refinanciar
+                    AS "indicadorIntereses"
+            FROM vista_resumen_creditos v
+            JOIN creditos cr ON cr.id = v.credito_id
+            WHERE cr.cobrador_id = :cobradorId
+            ORDER BY v.saldo_pendiente DESC, v.credito_id
+            """, nativeQuery = true)
+    List<ResumenMaterializadoFila> obtenerResumenMaterializado(
+            @Param("cobradorId") Integer cobradorId);
+
+    interface ResumenMaterializadoFila {
+
+        Integer getCreditoId();
+
+        String getNombreCliente();
+
+        String getFrecuenciaPago();
+
+        BigDecimal getCapitalPrestado();
+
+        BigDecimal getTasaPct();
+
+        BigDecimal getInteresGenerado();
+
+        BigDecimal getTotalARecaudar();
+
+        String getEstadoCredito();
+
+        BigDecimal getTotalRecaudado();
+
+        BigDecimal getSaldoPendiente();
+
+        Boolean getIndicadorIntereses();
+    }
 }

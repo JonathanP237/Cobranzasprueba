@@ -18,6 +18,7 @@ import com.ud.cobranzas.model.dto.ClienteMorosoDto;
 import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.CuotaVencidaDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
+import com.ud.cobranzas.model.dto.ResumenMaterializadoDto;
 import com.ud.cobranzas.repository.ReportesRepository;
 
 class ReportesServiceTest {
@@ -240,5 +241,72 @@ class ReportesServiceTest {
                 assertEquals(0, resultado.size());
 
                 verify(repositorio).obtenerCuotasVencidas(8);
+        }
+
+        @Test
+        void transformaResumenMaterializadoCorrectamente() {
+
+                ReportesRepository.ResumenMaterializadoFila fila = mock(
+                                ReportesRepository.ResumenMaterializadoFila.class);
+
+                when(fila.getCreditoId()).thenReturn(12);
+                when(fila.getNombreCliente()).thenReturn("Cliente prueba");
+                when(fila.getFrecuenciaPago()).thenReturn("MENSUAL");
+
+                when(fila.getCapitalPrestado())
+                                .thenReturn(new BigDecimal("1000000.00"));
+
+                when(fila.getTasaPct())
+                                .thenReturn(new BigDecimal("20.00"));
+
+                when(fila.getInteresGenerado())
+                                .thenReturn(new BigDecimal("200000.00"));
+
+                when(fila.getTotalARecaudar())
+                                .thenReturn(new BigDecimal("1200000.00"));
+
+                when(fila.getEstadoCredito()).thenReturn("AL_DIA");
+
+                when(fila.getTotalRecaudado())
+                                .thenReturn(new BigDecimal("350000.00"));
+
+                when(fila.getSaldoPendiente())
+                                .thenReturn(new BigDecimal("850000.00"));
+
+                when(fila.getIndicadorIntereses()).thenReturn(true);
+
+                when(repositorio.obtenerResumenMaterializado(3))
+                                .thenReturn(List.of(fila));
+
+                List<ResumenMaterializadoDto> resultado = servicio.obtenerResumenMaterializado(3);
+
+                assertEquals(1, resultado.size());
+
+                ResumenMaterializadoDto credito = resultado.get(0);
+
+                assertEquals(12, credito.creditoId());
+                assertEquals("Cliente prueba", credito.nombreCliente());
+
+                assertEquals(
+                                0,
+                                new BigDecimal("850000.00")
+                                                .compareTo(credito.saldoPendiente()));
+
+                assertEquals(true, credito.indicadorIntereses());
+
+                verify(repositorio).obtenerResumenMaterializado(3);
+        }
+
+        @Test
+        void admiteCobradorSinResumenMaterializado() {
+
+                when(repositorio.obtenerResumenMaterializado(8))
+                                .thenReturn(List.of());
+
+                List<ResumenMaterializadoDto> resultado = servicio.obtenerResumenMaterializado(8);
+
+                assertEquals(0, resultado.size());
+
+                verify(repositorio).obtenerResumenMaterializado(8);
         }
 }

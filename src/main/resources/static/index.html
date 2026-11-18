@@ -66,6 +66,9 @@
 <button class="nav-link" data-page="vencidas">
   <span>▤</span> Cuotas vencidas
 </button>
+<button class="nav-link" data-page="materializada">
+  <span>▣</span> Resumen financiero
+</button>
 </nav>
       <div class="sidebar-note">
         <span class="status-dot"></span>
@@ -256,6 +259,59 @@
     </div>
 
     <div id="vencidas-list" class="table-wrap"></div>
+
+  </article>
+
+</section>
+
+<section id="page-materializada" class="page-section" hidden>
+
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">VISTA MATERIALIZADA DE POSTGRESQL</p>
+      <h2>Resumen financiero de créditos</h2>
+      <p class="muted">
+        Información consolidada de la cartera según
+        la última actualización de la vista materializada.
+      </p>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+
+    <article class="stat-card">
+      <span class="stat-icon green">▤</span>
+      <span class="stat-label">Créditos</span>
+      <strong id="materializada-count">0</strong>
+      <small>Incluidos en el reporte</small>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-icon blue">$</span>
+      <span class="stat-label">Total recaudado</span>
+      <strong id="materializada-recaudado">$0</strong>
+      <small>Según última actualización</small>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-icon amber">◷</span>
+      <span class="stat-label">Saldo pendiente</span>
+      <strong id="materializada-saldo">$0</strong>
+      <small>Según última actualización</small>
+    </article>
+
+  </div>
+
+  <article class="panel">
+
+    <div class="panel-heading">
+      <div>
+        <p class="eyebrow">ANÁLISIS FINANCIERO</p>
+        <h3>Resumen consolidado por crédito</h3>
+      </div>
+    </div>
+
+    <div id="materializada-list" class="table-wrap"></div>
 
   </article>
 

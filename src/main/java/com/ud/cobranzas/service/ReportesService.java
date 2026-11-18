@@ -12,6 +12,7 @@ import com.ud.cobranzas.model.dto.CreditoSobrePromedioDto;
 import com.ud.cobranzas.model.dto.CuotaVencidaDto;
 import com.ud.cobranzas.model.dto.RecaudoDto;
 import com.ud.cobranzas.model.dto.ResumenCarteraDto;
+import com.ud.cobranzas.model.dto.ResumenMaterializadoDto;
 import com.ud.cobranzas.repository.ReportesRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -106,6 +107,28 @@ public class ReportesService {
                                                 r.getMontoCuota(),
                                                 r.getTotalPagado(),
                                                 r.getSaldoPendiente()))
+                                .toList();
+        }
+
+        @Transactional(readOnly = true)
+        public List<ResumenMaterializadoDto> obtenerResumenMaterializado(
+                        Integer cobradorId) {
+
+                return reportesRepository
+                                .obtenerResumenMaterializado(cobradorId)
+                                .stream()
+                                .map(r -> new ResumenMaterializadoDto(
+                                                r.getCreditoId(),
+                                                r.getNombreCliente(),
+                                                r.getFrecuenciaPago(),
+                                                r.getCapitalPrestado(),
+                                                r.getTasaPct(),
+                                                r.getInteresGenerado(),
+                                                r.getTotalARecaudar(),
+                                                r.getEstadoCredito(),
+                                                r.getTotalRecaudado(),
+                                                r.getSaldoPendiente(),
+                                                r.getIndicadorIntereses()))
                                 .toList();
         }
 }
